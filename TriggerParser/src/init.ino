@@ -9,7 +9,7 @@
 
 // compiling for products
 PRODUCT_ID(6812);
-PRODUCT_VERSION(3)
+PRODUCT_VERSION(14)
 
 // light reafing variables
 Si1132 light;
@@ -87,19 +87,18 @@ void setup()
 void loop()
 {
   delay(1000);
-  currentLight = light.readVisible();
+  //currentLight = light.readVisible();
+  //Serial.println(String(readSoundLevel()));
   if(currentState.equals("ARMED"))
   {
     if(triggerMovement)
     {
       if(monitorMovement())
       {
-        Serial.println("Movement detected while in state armed - event raised.");
-        Particle.publish("eventname", eventData);
+        Particle.publish("movement", eventData);
         if(triggerState.equals("ARMED"))
         {
           // start testing the trigger conditions
-          // TODO two different triggers sound and light
           if(triggerSound && triggerLight)
           {
             Serial.println("I monitoring sound and light.");
@@ -143,6 +142,7 @@ void loop()
           // sound only
           else if (triggerSound)
           {
+            Serial.println("I monitoring sound.");
             //check sound
             if(soundOperator.equals(">") || soundOperator.equals(">="))
             {
@@ -164,6 +164,7 @@ void loop()
           // light only
           else if (triggerLight)
           {
+            Serial.println("I monitoring light.");
             //check light
             if(lightOperator.equals(">") || lightOperator.equals(">="))
             {
@@ -193,9 +194,7 @@ void loop()
 // tell the server if the condition set in the trigger has been met
 void tellServer()
 {
-  extraEventData = "{\"conditionMet\": \"true\"};"
-  Particle.publish("conditionMet", extraEventData);
-  extraEventData = "";
+  Particle.publish("event", eventData);
 }
 
 // send a get request using the url passed as parameter
@@ -204,6 +203,8 @@ int sendGetRequest(String url)
   // split the url into required parts for the request object
   char hostNameToken = ':';
   char hostUrlToken = '/';
+
+  //1f7e8759-7de7-4011-bee2-9bc063e52671.mock.pstmn.io/sg
   for(int i = 0; i < url.length(); i++)
   {
     if(url.charAt(i) == hostNameToken)
@@ -214,7 +215,8 @@ int sendGetRequest(String url)
       {
         if(url.charAt(j) == hostUrlToken)
         {
-          request.port = url.substring(i+1, j).toInt();
+          //request.port = url.substring(i+1, j).toInt();
+          request.port = 80;
           request.path = url.substring(j);
           //Serial.println(request.port);
           //Serial.println(request.path);
